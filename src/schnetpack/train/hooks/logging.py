@@ -4,7 +4,7 @@ import numpy as np
 from schnetpack.train.hooks import Hook
 
 
-__all__ = ["LoggingHook", "CSVHook", "TensorboardHook"]
+__all__ = ["LoggingHook", "CSVHook", "TensorboardHook", "PrintHook"]
 
 
 class LoggingHook(Hook):
@@ -278,3 +278,118 @@ class TensorboardHook(LoggingHook):
 
     def on_train_failed(self, trainer):
         self.writer.close()
+
+class TensorboardHook(LoggingHook):
+    """Hook for logging training process to tensorboard.
+
+    Args:
+        log_path (str): path to directory in which log files will be stored.
+        metrics (list): metrics to log; each metric has to be a subclass of spk.Metric.
+        log_train_loss (bool, optional): enable logging of training loss.
+        log_validation_loss (bool, optional): enable logging of validation loss.
+        log_learning_rate (bool, optional): enable logging of current learning rate.
+        every_n_epochs (int, optional): epochs after which logging takes place.
+        img_every_n_epochs (int, optional):
+        log_histogram (bool, optional):
+
+    """
+
+    def __init__(
+        self,
+        log_path,
+        metrics,
+        log_train_loss=True,
+        log_validation_loss=True,
+        log_learning_rate=True,
+        every_n_epochs=1,
+        img_every_n_epochs=10,
+        log_histogram=False,
+    ):
+        from tensorboardX import SummaryWriter
+
+        super(TensorboardHook, self).__init__(
+            log_path, metrics, log_train_loss, log_validation_loss, log_learning_rate
+        )
+        self.writer = SummaryWriter(self.log_path)
+        self.every_n_epochs = every_n_epochs
+        self.log_histogram = log_histogram
+        self.img_every_n_epochs = img_every_n_epochs
+
+    def on_epoch_end(self, trainer):
+        if trainer.epoch % self.every_n_epochs == 0:
+            if self.log_train_loss:
+                self.writer.add_scalar(
+                    "train/loss", self._train_loss / self._counter, trainer.epoch
+                )
+            if self.log_learning_rate:
+                self.writer.add_scalar(
+                    "train/learning_rate",
+                    trainer.optimizer.param_groups[0]["lr"],
+                    trainer.epoch,
+                )
+
+    def on_validation_end(self, trainer, val_loss):
+        if trainer.epoch % self.every_n_epochs == 0:
+            for metric in self.metrics:
+                m = metric.aggregate()
+
+                if np.isscalar(m):
+                    self.writer.add_scalar(
+                        "metrics/%s" % metric.name, float(m), trainer.epoch
+                    )
+                elif m.ndim == 2:
+                    if trainer.epoch % self.img_every_n_epochs == 0:
+                        import matplotlib.pyplot as plt
+
+                        # tensorboardX only accepts images as numpy arrays.
+                        # we therefore convert plots in numpy array
+                        # see https://github.com/lanpa/tensorboard-pytorch/blob/master/examples/matplotlib_demo.py
+                        fig = plt.figure()
+                        plt.colorbar(plt.pcolor(m))
+                        fig.canvas.draw()
+
+                        np_image = np.fromstring(
+                            fig.canvas.tostring_rgb(), dtype="uint8"
+                        )
+                        np_image = np_image.reshape(
+                            fig.canvas.get_width_height()[::-1] + (3,)
+                        )
+
+                        plt.close(fig)
+
+                        self.writer.add_image(
+                            "metrics/%s" % metric.name, np_image, trainer.epoch
+                        )
+
+            if self.log_validation_loss:
+                self.writer.add_scalar("train/val_loss", float(val_loss), trainer.step)
+
+            if self.log_histogram:
+                for name, param in trainer._model.named_parameters():
+                    self.writer.add_histogram(
+                        name, param.detach().cpu().numpy(), trainer.epoch
+                    )
+
+    def on_train_ends(self, trainer):
+        self.writer.close()
+
+    def on_train_failed(self, trainer):
+        self.writer.close()
+
+class PrintHook(Hook):
+    def __init__(
+        self,
+        log_train_loss=True,
+        log_validation_loss=True,
+        log_learning_rate=True,
+        every_n_epochs=1,
+    ):
+        self._offset = 0
+        self._restart = False
+        self.every_n_epochs = every_n_epochs
+    def on_epoch_begin(self, trainer):
+        print('epoch[ ',trainer.epoch,'\t]\t', end='')
+    def on_validation_end(self, trainer, val_loss):
+        print(round(val_loss, 6), end='')
+    def on_epoch_end(self, trainer):
+        print() 
