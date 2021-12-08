@@ -6,6 +6,7 @@ import schnetpack.train as trn
 from torch.optim import Adam
 from schnetpack import AtomsData
 import os
+import sys
 import schnetpack as spk
 import argparse
 
@@ -30,6 +31,7 @@ metadata = {'atomrefs': [[0.0], [-13.613121720568273], [0.0], [0.0], [0.0], [0.0
 mytut = './mytut'
 if not os.path.exists('mytut'):
     os.makedirs(mytut)
+with open(mytut+'/cmd','a') as f: f.write(str(sys.argv))
 
 new_dataset = AtomsData(args.dataset, available_properties=['energy'])
 new_dataset.set_metadata(metadata=metadata)
