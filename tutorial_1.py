@@ -143,6 +143,7 @@ test_loader = spk.AtomsLoader(test, batch_size=args.batch_size)
 
 err = 0
 print(len(test_loader))
+plt.clf()
 for count, batch in enumerate(test_loader):
     # move batch to GPU, if necessary
     batch = {k: v.to(device) for k, v in batch.items()}
@@ -154,11 +155,17 @@ for count, batch in enumerate(test_loader):
     tmp = torch.sum(torch.abs(pred['energy']-batch['energy']))
     tmp = tmp.detach().cpu().numpy()  # detach from graph & convert to numpy
     err += tmp
+    
+    x=(batch['energy'].detach().cpu().numpy()+47113.71)*23.04
+    y=(pred['energy'].detach().cpu().numpy()+47113.71)*23.04
+    plt.plot(x,y,'.')
+    plt.plot(x,x,'-')
 
     # log progress
     percent = '{:3.2f}'.format(count/len(test_loader)*100)
     print('Progress:', percent+'%'+' '*(5-len(percent)), end="\r")
 
+plt.savefig(mytut+'/test.png')
 err /= len(test)
 print('Test MAE', np.round(err, 2), 'eV =',
       np.round(err / (kcal/mol), 2), 'kcal/mol')
