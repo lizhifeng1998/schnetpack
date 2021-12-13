@@ -24,6 +24,7 @@ parser.add_argument('--cutoff', type=float, default=4.,)
 parser.add_argument('--learning_rate', type=float, default=1e-2,)
 parser.add_argument('--batch_size', type=int, default=100,)
 parser.add_argument('--dataset', default='6a_capped.db')
+parser.add_argument('--emin', type=float, default=47113.71)
 args = parser.parse_args()
 
 metadata = {'atomrefs': [[0.0], [-13.613121720568273], [0.0], [0.0], [0.0], [0.0], [-1029.8631226682135], [-1485.3025123714042], [-2042.6112359256108], [-2713.4848558896506], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0]], 'atref_labels': ['energy']}
@@ -156,8 +157,8 @@ for count, batch in enumerate(test_loader):
     tmp = tmp.detach().cpu().numpy()  # detach from graph & convert to numpy
     err += tmp
     
-    x=(batch['energy'].detach().cpu().numpy()+47113.71)*23.04
-    y=(pred['energy'].detach().cpu().numpy()+47113.71)*23.04
+    x=(batch['energy'].detach().cpu().numpy()+args.emin)*23.04
+    y=(pred['energy'].detach().cpu().numpy()+args.emin)*23.04
     plt.plot(x,y,'.')
     plt.plot(x,x,'-')
 
