@@ -25,6 +25,7 @@ parser.add_argument('--learning_rate', type=float, default=1e-2,)
 parser.add_argument('--batch_size', type=int, default=100,)
 parser.add_argument('--dataset', default='6a_capped.db')
 parser.add_argument('--emin', type=float, default=47113.71)
+parser.add_argument('--key_out', default='energy')
 args = parser.parse_args()
 
 metadata = {'atomrefs': [[0.0], [-13.613121720568273], [0.0], [0.0], [0.0], [0.0], [-1029.8631226682135], [-1485.3025123714042], [-2042.6112359256108], [-2713.4848558896506], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0]], 'atref_labels': ['energy']}
@@ -96,8 +97,8 @@ hooks = [
     ),
     trn.PrintHook()
 ]
-
-trainer = trn.Trainer(
+if not args.test:
+    trainer = trn.Trainer(
     model_path=mytut,
     model=model,
     hooks=hooks,
@@ -105,7 +106,7 @@ trainer = trn.Trainer(
     optimizer=optimizer,
     train_loader=train_loader,
     validation_loader=val_loader,
-)
+    )
 
 device = "cuda"  # change to 'cpu' if gpu is not available
 n_epochs = args.epochs  # takes about 10 min on a notebook GPU. reduces for playing around
@@ -154,12 +155,12 @@ for count, batch in enumerate(test_loader):
     pred = best_model(batch)
 
     # calculate absolute error
-    tmp = torch.sum(torch.abs(pred['energy']-batch['energy']))
+    tmp = torch.sum(torch.abs(pred[args.key_out]-batch['energy']))
     tmp = tmp.detach().cpu().numpy()  # detach from graph & convert to numpy
     err += tmp
     
     x += [w[0] for w in (batch['energy'].detach().cpu().numpy()+args.emin)*23.04]
-    y += [w[0] for w in (pred['energy'].detach().cpu().numpy()+args.emin)*23.04]
+    y += [w[0] for w in (pred[args.key_out].detach().cpu().numpy()+args.emin)*23.04]
 
     # log progress
     percent = '{:3.2f}'.format(count/len(test_loader)*100)
@@ -169,7 +170,7 @@ plt.plot(x,y,'.')
 plt.plot(x,x,'-')
 plt.savefig(mytut+'/test.png')
 with open(mytut+'/result.txt','w') as f:
-    for i in range(len(x)): f.write(str(x[i])+' '+str(y)+'\n')
+    for i in range(len(x)): f.write(str(x[i])+' '+str(y[i])+'\n')
 err /= len(test)
 print('Test MAE', np.round(err, 2), 'eV =',
       np.round(err / (kcal/mol), 2), 'kcal/mol')
