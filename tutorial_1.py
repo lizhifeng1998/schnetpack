@@ -169,8 +169,7 @@ plt.plot(x,y,'.')
 plt.plot(x,x,'-')
 plt.savefig(mytut+'/test.png')
 with open(mytut+'/result.txt','w') as f:
-  for i in range(len(x)):
-    f.write(str(x[i]+' '+str(y)+'\n')
+    for i in range(len(x)): f.write(str(x[i])+' '+str(y)+'\n')
 err /= len(test)
 print('Test MAE', np.round(err, 2), 'eV =',
       np.round(err / (kcal/mol), 2), 'kcal/mol')
