@@ -33,7 +33,7 @@ metadata = {'atomrefs': [[0.0], [-13.613121720568273], [0.0], [0.0], [0.0], [0.0
 mytut = './mytut'
 if not os.path.exists('mytut'):
     os.makedirs(mytut)
-with open(mytut+'/cmd','a') as f: f.write(str(sys.argv))
+with open(mytut+'/cmd','a') as f: f.write(str(sys.argv)+'\n')
 
 new_dataset = AtomsData(args.dataset, available_properties=['energy'])
 new_dataset.set_metadata(metadata=metadata)
