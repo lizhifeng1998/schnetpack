@@ -39,8 +39,8 @@ new_dataset = AtomsData(args.dataset, available_properties=['energy'])
 new_dataset.set_metadata(metadata=metadata)
 idx = np.random.permutation(len(new_dataset))
 train_idx = idx[:args.num_train].tolist()
-val_idx = idx[-args.num_val:]
-test_idx = idx[args.num_train:-args.num_val]
+val_idx = idx[-args.num_val:].tolist()
+test_idx = idx[args.num_train:-args.num_val].tolist()
 train = create_subset(new_dataset, train_idx)
 val = create_subset(new_dataset, val_idx)
 test = create_subset(new_dataset, test_idx)
