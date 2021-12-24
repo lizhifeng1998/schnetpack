@@ -4,7 +4,7 @@ import numpy as np
 from schnetpack.train.hooks import Hook
 
 
-__all__ = ["LoggingHook", "CSVHook", "TensorboardHook", "PrintHook"]
+__all__ = ["LoggingHook", "CSVHook", "TensorboardHook", "PrintHook", "TestHook"]
 
 
 class LoggingHook(Hook):
