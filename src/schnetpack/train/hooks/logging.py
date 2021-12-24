@@ -394,7 +394,7 @@ class PrintHook(Hook):
     def on_epoch_end(self, trainer):
         print() 
 
-class TestHook(Hook()):
+class TestHook(Hook):
     def __init__(
         self,
         test_loader,
