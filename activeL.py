@@ -24,6 +24,14 @@ parser.add_argument('--iterations', type=int, default=5, help='5')
 parser.add_argument('--learning_rate', type=float, default=1e-2, help='1e-2')
 parser.add_argument('--lr_patience', type=int, default=5, help='5')
 parser.add_argument('--activeL', type=int, default=10, help='10')
+parser.add_argument('--dataset', default='6a_capped.db')
+parser.add_argument('--test', action='store_true', default=False,
+                    help='test only')
+parser.add_argument('--n_atom_basis', type=int, default=30,)
+parser.add_argument('--n_filters', type=int, default=30,)
+parser.add_argument('--n_gaussians', type=int, default=20,)
+parser.add_argument('--n_interactions', type=int, default=5,)
+parser.add_argument('--cutoff', type=float, default=4.,)
 args = parser.parse_args()
 
 metadata = {'atomrefs': [[0.0], [-13.613121720568273], [0.0], [0.0], [0.0], [0.0], [-1029.8631226682135], [-1485.3025123714042], [-2042.6112359256108], [-2713.4848558896506], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0]], 'atref_labels': ['energy']}
