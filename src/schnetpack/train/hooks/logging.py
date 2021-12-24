@@ -394,7 +394,7 @@ class PrintHook(Hook):
     def on_epoch_end(self, trainer):
         print() 
 
-        class TestHook(Hook()):
+class TestHook(Hook()):
     def __init__(
         self,
         test_loader,
@@ -402,14 +402,17 @@ class PrintHook(Hook):
         log_validation_loss=True,
         log_learning_rate=True,
         every_n_epochs=1,
+        device="cuda",
     ):
         self._offset = 0
         self._restart = False
         self.every_n_epochs = every_n_epochs
         self.test_loader = test_loader
         self.result = [ 0 for i in range(len(self.test_loader))]
+        self.device = device
     def on_epoch_end(self, trainer):
         if trainer.epoch % self.every_n_epochs == self.every_n_epochs - 1:
             for count, batch in enumerate(self.test_loader):
                 batch = {k: v.to(device) for k, v in batch.items()}
-                pred = best_model(batch)
+                pred = trainer._model(batch)
+                self.result[-1] += pred['energy'].detach().cpu().tolist()
