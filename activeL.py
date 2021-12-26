@@ -120,8 +120,9 @@ for i in range(args.iterations):
     order = np.argsort(-var,axis=0)
     new_idx = [test_idx[order[i][0]] for i in range(args.num_train)]
     test_idx = [test_idx[order[i][0]] for i in range(args.num_train,len(test_idx))]
+    train_idx += new_idx
     del train, test, train_loader, test_loader
-    train = create_subset(new_dataset, train_idx+new_idx)
+    train = create_subset(new_dataset, train_idx)
     test = create_subset(new_dataset, test_idx)
     train_loader = spk.AtomsLoader(train, batch_size=args.batch_size, shuffle=True, pin_memory=True)
     test_loader = spk.AtomsLoader(test, batch_size=args.batch_size)
