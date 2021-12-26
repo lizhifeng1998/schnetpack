@@ -139,7 +139,12 @@ for i in range(args.iterations):
                                    mean=means['energy'], stddev=stddevs['energy'])
     model = spk.AtomisticModel(representation=schnet, output_modules=output_U0)
     optimizer = Adam(model.parameters(), lr=args.learning_rate)
-    hooks[-1] = trn.TestHook(test_loader, every_n_epochs=args.activeL)
+    del hooks[-2:]
+    hooks.append(trn.ReduceLROnPlateauHook(
+        optimizer,
+        patience=args.lr_patience, factor=0.8, min_lr=1e-6,
+        stop_after_min=True))
+    hooks.append(trn.TestHook(test_loader, every_n_epochs=args.activeL))
     trainer = trn.Trainer(
     model_path=rootpath+'/a'+str(i+1),
     model=model,
