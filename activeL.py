@@ -117,7 +117,7 @@ for i in range(args.iterations):
     print('Test MAE', np.round(err, 2), 'eV =',
       np.round(err / (kcal/mol), 2), 'kcal/mol')
     var = np.var(hooks[-1].result,axis=0)
-    order = np.argsort(var,axis=0)
+    order = np.argsort(-var,axis=0)
     new_idx = [test_idx[order[i][0]] for i in range(args.num_train)]
     test_idx = [test_idx[order[i][0]] for i in range(args.num_train,len(test_idx))]
     del train, test, train_loader, test_loader
