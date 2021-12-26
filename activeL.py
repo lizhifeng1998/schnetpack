@@ -102,6 +102,20 @@ n_epochs = args.epochs
 
 for i in range(args.iterations):
     trainer.train(device=device, n_epochs=n_epochs)
+    best_model = torch.load(os.path.join(rootpath, 'a'+str(i)+'/best_model'))
+    err = 0
+    print(len(test_loader))
+    for count, batch in enumerate(test_loader):
+        batch = {k: v.to(device) for k, v in batch.items()}
+        pred = best_model(batch)
+        tmp = torch.sum(torch.abs(pred['energy']-batch['energy']))
+        tmp = tmp.detach().cpu().numpy()
+        err += tmp
+        percent = '{:3.2f}'.format(count/len(test_loader)*100)
+        print('Progress:', percent+'%'+' '*(5-len(percent)), end="\r")
+    err /= len(test)
+    print('Test MAE', np.round(err, 2), 'eV =',
+      np.round(err / (kcal/mol), 2), 'kcal/mol')
     var = np.var(hooks[-1].result,axis=0)
     order = np.argsort(var,axis=0)
     new_idx = [test_idx[order[i][0]] for i in range(args.num_train)]
@@ -127,7 +141,7 @@ for i in range(args.iterations):
     optimizer = Adam(model.parameters(), lr=args.learning_rate)
     hooks[-1] = trn.TestHook(test_loader, every_n_epochs=args.activeL)
     trainer = trn.Trainer(
-    model_path=rootpath+'/'+str(i+1),
+    model_path=rootpath+'/a'+str(i+1),
     model=model,
     hooks=hooks,
     loss_fn=loss,
