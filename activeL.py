@@ -104,8 +104,8 @@ for i in range(args.iterations):
     trainer.train(device=device, n_epochs=n_epochs)
     var = np.var(hooks[-1].result,axis=0)
     order = np.argsort(var,axis=0)
-    new_idx = np.array([test_idx[order[i][0]] for i in range(args.num_train)]).tolist()
-    test_idx = np.array([test_idx[order[i][0]] for i in range(args.num_train,len(test_idx))]).tolist()
+    new_idx = [test_idx[order[i][0]] for i in range(args.num_train)]
+    test_idx = [test_idx[order[i][0]] for i in range(args.num_train,len(test_idx))]
     del train, test, train_loader, test_loader
     train = create_subset(new_dataset, train_idx+new_idx)
     test = create_subset(new_dataset, test_idx)
