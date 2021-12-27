@@ -156,8 +156,8 @@ for i in range(args.iterations):
         patience=args.lr_patience, factor=0.8, min_lr=1e-6,
         stop_after_min=True
     ),
-    trn.PrintHook(),
-    trn.TestHook(test_loader, rootpath+'/a'+str(i+1), every_n_epochs=args.activeL)]
+    trn.PrintHook()]
+    if i != args.iterations - 1: hooks.append(trn.TestHook(test_loader, rootpath+'/a'+str(i+1), every_n_epochs=args.activeL))
     trainer = trn.Trainer(
     model_path=rootpath+'/a'+str(i+1),
     model=model,
