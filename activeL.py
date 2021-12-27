@@ -32,6 +32,7 @@ parser.add_argument('--n_filters', type=int, default=64, help='64')
 parser.add_argument('--n_gaussians', type=int, default=100, help='100')
 parser.add_argument('--n_interactions', type=int, default=3, help='3')
 parser.add_argument('--cutoff', type=float, default=4., help='4.')
+parser.add_argument('--final_epochs', type=int, default=-1,)
 args = parser.parse_args()
 
 metadata = {'atomrefs': [[0.0], [-13.613121720568273], [0.0], [0.0], [0.0], [0.0], [-1029.8631226682135], [-1485.3025123714042], [-2042.6112359256108], [-2713.4848558896506], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0]], 'atref_labels': ['energy']}
@@ -101,6 +102,7 @@ device = "cuda"
 n_epochs = args.epochs
 
 for i in range(args.iterations):
+    if i == args.iterations - 1 and args.final_epochs > 0: n_epochs =  args.final_epochs
     trainer.train(device=device, n_epochs=n_epochs)
     best_model = torch.load(os.path.join(rootpath, 'a'+str(i)+'/best_model'))
     err = 0
