@@ -323,7 +323,7 @@ class TestHook(Hook):
                 pred = trainer._model(batch)
                 self.result[-1] += pred['energy'].detach().cpu().tolist()
     def on_train_ends(self, trainer):
-        with open(self.log_path,'w') as f:
+        with open(self.log_path+'/var.csv','w') as f:
             for i in range(len(self.result[0])):
                 for j in range(len(self.result)): f.write(str(self.result[j][i]+','))
                 f.write('/n')
