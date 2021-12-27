@@ -130,15 +130,21 @@ for i in range(args.iterations):
     'energy', divide_by_atoms=True, single_atom_ref=atomrefs)
     print('Mean atomization energy / atom:', means['energy'])
     print('Std. dev. atomization energy / atom:', stddevs['energy'])
-    del trainer, model, optimizer, schnet, output_U0
-    schnet = spk.representation.SchNet(
-    n_atom_basis=args.n_atom_basis, n_filters=args.n_filters,
-    n_gaussians=args.n_gaussians, n_interactions=args.n_interactions,
-    cutoff=args.cutoff, cutoff_network=spk.nn.cutoff.CosineCutoff
-    )
-    output_U0 = spk.atomistic.Atomwise(n_in=args.n_atom_basis, atomref=atomrefs['energy'], property='energy',
+    del trainer, model, optimizer
+    if True:
+        del schnet, output_U0
+        schnet = spk.representation.SchNet(
+        n_atom_basis=args.n_atom_basis, n_filters=args.n_filters,
+        n_gaussians=args.n_gaussians, n_interactions=args.n_interactions,
+        cutoff=args.cutoff, cutoff_network=spk.nn.cutoff.CosineCutoff
+        )
+        output_U0 = spk.atomistic.Atomwise(n_in=args.n_atom_basis, atomref=atomrefs['energy'], property='energy',
                                    mean=means['energy'], stddev=stddevs['energy'])
-    model = spk.AtomisticModel(representation=schnet, output_modules=output_U0)
+        model = spk.AtomisticModel(representation=schnet, output_modules=output_U0)
+    else:
+        model = best_model
+        del model.output_modules[0].standardize
+        model.output_modules[0].standardize = spk.nn.base.ScaleShift(means['energy'], stddevs['energy'])
     optimizer = Adam(model.parameters(), lr=args.learning_rate)
     del hooks
     hooks = [
