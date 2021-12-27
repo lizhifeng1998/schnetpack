@@ -84,7 +84,7 @@ hooks = [
         stop_after_min=True
     ),
     trn.PrintHook(),
-    trn.TestHook(test_loader, every_n_epochs=args.activeL)
+    trn.TestHook(test_loader, rootpath+'/a0', every_n_epochs=args.activeL)
 ]
 
 trainer = trn.Trainer(
@@ -149,7 +149,7 @@ for i in range(args.iterations):
         stop_after_min=True
     ),
     trn.PrintHook(),
-    trn.TestHook(test_loader, every_n_epochs=args.activeL)]
+    trn.TestHook(test_loader, rootpath+'/a'+str(i+1), every_n_epochs=args.activeL)]
     trainer = trn.Trainer(
     model_path=rootpath+'/a'+str(i+1),
     model=model,
