@@ -325,5 +325,5 @@ class TestHook(Hook):
     def on_train_ends(self, trainer):
         with open(self.log_path+'/var.csv','w') as f:
             for i in range(len(self.result[0])):
-                for j in range(len(self.result)): f.write(str(self.result[j][i][0])+','))
+                for j in range(len(self.result)): f.write(str(self.result[j][i][0])+',')
                 f.write('\n')
