@@ -125,6 +125,10 @@ for i in range(args.iterations):
     new_idx = [test_idx[order[j][0]] for j in range(args.num_train)]
     test_idx = [test_idx[order[j][0]] for j in range(args.num_train,len(test_idx))]
     train_idx += new_idx
+    with open(rootpath+'/a'+str(i)+'/test.idx','w') as f:
+        for j in range(len(test_idx)): f.write(str(test_idx[j])+'\n')
+    with open(rootpath+'/a'+str(i)+'/train.idx','w') as f:
+        for j in range(len(train_idx)): f.write(str(train_idx[j])+'\n')
     del train, test, train_loader, test_loader
     train = create_subset(new_dataset, train_idx)
     test = create_subset(new_dataset, test_idx)
