@@ -120,8 +120,10 @@ for i in range(args.iterations):
       np.round(err / (kcal/mol), 2), 'kcal/mol')
     var = np.var(hooks[-1].result,axis=0)
     order = np.argsort(-var,axis=0)
-    new_idx = [test_idx[order[i][0]] for i in range(args.num_train)]
-    test_idx = [test_idx[order[i][0]] for i in range(args.num_train,len(test_idx))]
+    with open(rootpath+'/a'+str(i)+'/var.txt','w') as f:
+        for j in range(order.shape[0]): f.write(str(var[j][0])+' '+str(order[j][0])+'\n')
+    new_idx = [test_idx[order[j][0]] for j in range(args.num_train)]
+    test_idx = [test_idx[order[j][0]] for j in range(args.num_train,len(test_idx))]
     train_idx += new_idx
     del train, test, train_loader, test_loader
     train = create_subset(new_dataset, train_idx)
