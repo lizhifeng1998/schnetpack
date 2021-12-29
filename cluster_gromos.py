@@ -50,8 +50,8 @@ val_idx, test_idx = [], []
 i=0
 for x in idx:
     if x in train_idx: continue
-    if i < args.num_val: val_idx.append(x)
-    else: test_idx.append(x)
+    if i < args.num_val: val_idx.append(int(x))
+    else: test_idx.append(int(x))
     i += 1
 train = create_subset(new_dataset, train_idx)
 val = create_subset(new_dataset, val_idx)
