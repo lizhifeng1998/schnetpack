@@ -107,14 +107,23 @@ for i in range(args.iterations):
     best_model = torch.load(os.path.join(rootpath, 'a'+str(i)+'/best_model'))
     err = 0
     print(len(test_loader))
+    plt.clf()
+    x, y = [], []
     for count, batch in enumerate(test_loader):
         batch = {k: v.to(device) for k, v in batch.items()}
         pred = best_model(batch)
         tmp = torch.sum(torch.abs(pred['energy']-batch['energy']))
         tmp = tmp.detach().cpu().numpy()
         err += tmp
+        x += [w[0] for w in (batch['energy'].detach().cpu().numpy()+args.emin)*23.04]
+        y += [w[0] for w in (pred[args.key_out].detach().cpu().numpy()+args.emin)*23.04]
         percent = '{:3.2f}'.format(count/len(test_loader)*100)
         print('Progress:', percent+'%'+' '*(5-len(percent)), end="\r")
+    plt.plot(x,y,'.')
+    plt.plot(x,x,'-')
+    plt.savefig(rootpath+'/a'+str(i)+'/pred.png')
+    with open(rootpath+'/a'+str(i)+'/pred.txt','w') as f:
+        for i in range(len(x)): f.write(str(x[i])+' '+str(y[i])+'\n')
     err /= len(test)
     print('Test MAE', np.round(err, 2), 'eV =',
       np.round(err / (kcal/mol), 2), 'kcal/mol')
