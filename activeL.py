@@ -117,7 +117,7 @@ for i in range(args.iterations):
         tmp = tmp.detach().cpu().numpy()
         err += tmp
         x += [w[0] for w in (batch['energy'].detach().cpu().numpy()+args.emin)*23.04]
-        y += [w[0] for w in (pred[args.key_out].detach().cpu().numpy()+args.emin)*23.04]
+        y += [w[0] for w in (pred['energy'].detach().cpu().numpy()+args.emin)*23.04]
         percent = '{:3.2f}'.format(count/len(test_loader)*100)
         print('Progress:', percent+'%'+' '*(5-len(percent)), end="\r")
     plt.plot(x,y,'.')
