@@ -124,7 +124,7 @@ for i in range(args.iterations):
     plt.plot(x,x,'-')
     plt.savefig(rootpath+'/a'+str(i)+'/pred.png')
     with open(rootpath+'/a'+str(i)+'/pred.txt','w') as f:
-        for i in range(len(x)): f.write(str(x[i])+' '+str(y[i])+'\n')
+        for j in range(len(x)): f.write(str(x[j])+' '+str(y[j])+'\n')
     err /= len(test)
     print('Test MAE', np.round(err, 2), 'eV =',
       np.round(err / (kcal/mol), 2), 'kcal/mol')
