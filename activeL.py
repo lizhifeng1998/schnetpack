@@ -34,6 +34,7 @@ parser.add_argument('--n_interactions', type=int, default=3, help='3')
 parser.add_argument('--cutoff', type=float, default=4., help='4.')
 parser.add_argument('--final_epochs', type=int, default=-1,)
 parser.add_argument('--emin', type=float, default=47113.71)
+parser.add_argument('--noactive', action='store_true', default=False)
 args = parser.parse_args()
 
 metadata = {'atomrefs': [[0.0], [-13.613121720568273], [0.0], [0.0], [0.0], [0.0], [-1029.8631226682135], [-1485.3025123714042], [-2042.6112359256108], [-2713.4848558896506], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0]], 'atref_labels': ['energy']}
@@ -132,6 +133,8 @@ for i in range(args.iterations):
     order = np.argsort(-var,axis=0)
     with open(rootpath+'/a'+str(i)+'/var.txt','w') as f:
         for j in range(order.shape[0]): f.write(str(var[j][0])+' '+str(order[j][0])+'\n')
+    if args.noactive:
+        order = np.random.permutation(order.shape[0]).reshape(order.shape[0],1)
     new_idx = [test_idx[order[j][0]] for j in range(args.num_train)]
     test_idx = [test_idx[order[j][0]] for j in range(args.num_train,len(test_idx))]
     train_idx += new_idx
