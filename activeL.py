@@ -121,6 +121,7 @@ for i in range(args.iterations):
         y += [w[0] for w in (pred['energy'].detach().cpu().numpy()+args.emin)*23.04]
         percent = '{:3.2f}'.format(count/len(test_loader)*100)
         print('Progress:', percent+'%'+' '*(5-len(percent)), end="\r")
+    del batch, pred
     plt.plot(x,y,'.')
     plt.plot(x,x,'-')
     plt.savefig(rootpath+'/a'+str(i)+'/pred.png')
