@@ -130,6 +130,7 @@ for i in range(args.iterations):
     err /= len(test)
     print('Test MAE', np.round(err, 2), 'eV =',
       np.round(err / (kcal/mol), 2), 'kcal/mol')
+    with open(rootpath+'/test.txt','a') as f: f.write(str(err / (kcal/mol))+'\n')
     var = np.var(hooks[-1].result,axis=0)
     order = np.argsort(-var,axis=0)
     with open(rootpath+'/a'+str(i)+'/var.txt','w') as f:
