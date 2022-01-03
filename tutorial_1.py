@@ -165,11 +165,17 @@ for count, batch in enumerate(test_loader):
     
     x += [w[0] for w in (batch['energy'].detach().cpu().numpy()+args.emin)*23.04]
     y += [w[0] for w in (pred[args.key_out].detach().cpu().numpy()+args.emin)*23.04]
+    if args.contributions:
+        contributions += [w.tolist() for w in pred['contributions'].detach().cpu().numpy()*23.04]
 
     # log progress
     percent = '{:3.2f}'.format(count/len(test_loader)*100)
     print('Progress:', percent+'%'+' '*(5-len(percent)), end="\r")
 
+with open(mytut+'/contributions','w') as f:
+    for l in contributions:
+        for x in l: f.write(str(x[0])+' ')
+    f.write('\n')
 plt.plot(x,y,'.')
 plt.plot(x,x,'-')
 plt.savefig(mytut+'/test.png')
