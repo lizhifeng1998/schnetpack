@@ -13,16 +13,16 @@ import argparse
 parser = argparse.ArgumentParser(description='schnetpack tutorial-1')
 parser.add_argument('--test', action='store_true', default=False,
                     help='test only')
-parser.add_argument('--num_train', type=int, default=1000,)
-parser.add_argument('--num_val', type=int, default=500,)
-parser.add_argument('--epochs', type=int, default=200,)
-parser.add_argument('--n_atom_basis', type=int, default=30,)
-parser.add_argument('--n_filters', type=int, default=30,)
-parser.add_argument('--n_gaussians', type=int, default=20,)
-parser.add_argument('--n_interactions', type=int, default=5,)
-parser.add_argument('--cutoff', type=float, default=4.,)
-parser.add_argument('--learning_rate', type=float, default=1e-2,)
-parser.add_argument('--batch_size', type=int, default=100,)
+parser.add_argument('--num_train', type=int, default=2000, help='2000')
+parser.add_argument('--num_val', type=int, default=500, help='500')
+parser.add_argument('--epochs', type=int, default=200, help='200')
+parser.add_argument('--n_atom_basis', type=int, default=64, help='64')
+parser.add_argument('--n_filters', type=int, default=64, help='64')
+parser.add_argument('--n_gaussians', type=int, default=100, help='100')
+parser.add_argument('--n_interactions', type=int, default=3, help='3')
+parser.add_argument('--cutoff', type=float, default=4., help='4.')
+parser.add_argument('--learning_rate', type=float, default=1e-3, help='1e-3')
+parser.add_argument('--batch_size', type=int, default=100, help='100')
 parser.add_argument('--dataset', default='6a_capped.db')
 parser.add_argument('--emin', type=float, default=47113.71)
 parser.add_argument('--key_out', default='energy')
@@ -150,7 +150,7 @@ test_loader = spk.AtomsLoader(test, batch_size=args.batch_size)
 err = 0
 print(len(test_loader))
 plt.clf()
-x, y = [], []
+x, y, contributions  = [], [], []
 for count, batch in enumerate(test_loader):
     # move batch to GPU, if necessary
     batch = {k: v.to(device) for k, v in batch.items()}
