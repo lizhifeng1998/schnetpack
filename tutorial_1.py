@@ -174,7 +174,7 @@ for count, batch in enumerate(test_loader):
 
 with open(mytut+'/contributions','w') as f:
     for l in contributions:
-        for x in l: f.write(str(x[0])+' ')
+        for w in l: f.write(str(w[0])+' ')
     f.write('\n')
 plt.plot(x,y,'.')
 plt.plot(x,x,'-')
