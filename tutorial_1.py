@@ -26,6 +26,7 @@ parser.add_argument('--batch_size', type=int, default=100,)
 parser.add_argument('--dataset', default='6a_capped.db')
 parser.add_argument('--emin', type=float, default=47113.71)
 parser.add_argument('--key_out', default='energy')
+parser.add_argument('--contributions', action='store_true', default=False)
 args = parser.parse_args()
 
 metadata = {'atomrefs': [[0.0], [-13.613121720568273], [0.0], [0.0], [0.0], [0.0], [-1029.8631226682135], [-1485.3025123714042], [-2042.6112359256108], [-2713.4848558896506], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0]], 'atref_labels': ['energy']}
@@ -64,8 +65,11 @@ schnet = spk.representation.SchNet(
     n_gaussians=args.n_gaussians, n_interactions=args.n_interactions,
     cutoff=args.cutoff, cutoff_network=spk.nn.cutoff.CosineCutoff
 )
-
-output_U0 = spk.atomistic.Atomwise(n_in=args.n_atom_basis, atomref=atomrefs['energy'], property='energy',
+if args.contributions:
+    output_U0 = spk.atomistic.Atomwise(n_in=args.n_atom_basis, atomref=atomrefs['energy'], property='energy',
+                                   mean=means['energy'], stddev=stddevs['energy'], contributions='contributions')
+else:
+    output_U0 = spk.atomistic.Atomwise(n_in=args.n_atom_basis, atomref=atomrefs['energy'], property='energy',
                                    mean=means['energy'], stddev=stddevs['energy'])
 model = spk.AtomisticModel(representation=schnet, output_modules=output_U0)
 
