@@ -179,7 +179,7 @@ for count, batch in enumerate(test_loader):
 with open(mytut+'/contributions','w') as f:
     for l in contributions:
         for w in l: f.write(str(w[0])+' ')
-    f.write('\n')
+        f.write('\n')
 plt.plot(x,y,'.')
 plt.plot(x,x,'-')
 plt.savefig(mytut+'/test.png')
