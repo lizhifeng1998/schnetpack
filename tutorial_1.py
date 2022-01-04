@@ -8,6 +8,7 @@ from schnetpack import AtomsData
 import os
 import sys
 import schnetpack as spk
+from schnetpack.data.partitioning import create_subset
 import argparse
 
 parser = argparse.ArgumentParser(description='schnetpack tutorial-1')
@@ -27,6 +28,7 @@ parser.add_argument('--dataset', default='6a_capped.db')
 parser.add_argument('--emin', type=float, default=47113.71)
 parser.add_argument('--key_out', default='energy')
 parser.add_argument('--contributions', action='store_true', default=False)
+parser.add_argument('--test_all', action='store_true', default=False)
 args = parser.parse_args()
 
 metadata = {'atomrefs': [[0.0], [-13.613121720568273], [0.0], [0.0], [0.0], [0.0], [-1029.8631226682135], [-1485.3025123714042], [-2042.6112359256108], [-2713.4848558896506], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0]], 'atref_labels': ['energy']}
@@ -144,7 +146,9 @@ plt.xlabel('Time [s]')
 plt.savefig('mytut.png')
 
 best_model = torch.load(os.path.join(mytut, 'best_model'))
-
+if args.test_all:
+    test_idx = [i for i in range(len(new_dataset))]
+    test = create_subset(new_dataset, test_idx)
 test_loader = spk.AtomsLoader(test, batch_size=args.batch_size)
 
 err = 0
