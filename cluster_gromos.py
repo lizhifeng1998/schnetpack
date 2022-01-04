@@ -44,7 +44,7 @@ new_dataset.set_metadata(metadata=metadata)
 
 train_idx = []
 with open(args.train,'r') as f:
-    for x in f.readlines(): train_idx.append(int(x.strip()))
+    for x in f.readlines(): train_idx.append(int(x.strip().split()[0]))
 idx = np.random.permutation(len(new_dataset))
 val_idx, test_idx = [], []
 i=0
