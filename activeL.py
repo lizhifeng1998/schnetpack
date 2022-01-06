@@ -90,7 +90,7 @@ hooks = [
     ),
     trn.PrintHook(),
     trn.TestHook(test_loader, rootpath+'/a0', every_n_epochs=args.activeL,
-                contributions='contributions' if args.contributions else None)
+                contributions='contributions' if args.active1 else None)
 ]
 
 trainer = trn.Trainer(
@@ -135,7 +135,7 @@ for i in range(args.iterations):
       np.round(err / (kcal/mol), 2), 'kcal/mol')
     with open(rootpath+'/test.txt','a') as f: f.write(str(err / (kcal/mol))+'\n')
     #
-    if args.contributions:
+    if args.active1:
         atom_var = np.var(hooks[-1].result1,axis=0)
         var = np.max(atom_var,axis=1)
         with open(rootpath+'/a'+str(i)+'/atom_var.txt','w') as f:
@@ -194,7 +194,7 @@ for i in range(args.iterations):
     ),
     trn.PrintHook()]
     if i != args.iterations - 1:
-        hooks.append(trn.TestHook(test_loader, rootpath+'/a'+str(i+1), every_n_epochs=args.activeL, contributions='contributions' if args.contributions else None))
+        hooks.append(trn.TestHook(test_loader, rootpath+'/a'+str(i+1), every_n_epochs=args.activeL, contributions='contributions' if args.active1 else None))
     trainer = trn.Trainer(
     model_path=rootpath+'/a'+str(i+1),
     model=model,
