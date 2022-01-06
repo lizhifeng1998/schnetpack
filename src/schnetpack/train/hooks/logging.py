@@ -305,6 +305,7 @@ class TestHook(Hook):
         log_train_loss=True,
         log_validation_loss=True,
         log_learning_rate=True,
+        contributions=None,
         every_n_epochs=1,
         device="cuda",
     ):
@@ -312,16 +313,20 @@ class TestHook(Hook):
         self._restart = False
         self.every_n_epochs = every_n_epochs
         self.test_loader = test_loader
-        self.result = []
+        self.result1 = []
+        self.result2 = []
         self.device = device
         self.log_path = log_path
     def on_epoch_end(self, trainer):
         if trainer.epoch % self.every_n_epochs == self.every_n_epochs - 1:
-            self.result.append([])
+            self.result1.append([])
+            self.result2.append([])
             for count, batch in enumerate(self.test_loader):
                 batch = {k: v.to(self.device) for k, v in batch.items()}
                 pred = trainer._model(batch)
-                self.result[-1] += pred['energy'].detach().cpu().tolist()
+                self.result1[-1] += pred['energy'].detach().cpu().tolist()
+                if self.contributions is not None:
+                    self.result2[-1] +=pred[self.contributions].detach().cpu().tolist()
     def on_train_ends(self, trainer):
         with open(self.log_path+'/result.csv','w') as f:
             for i in range(len(self.result[0])):
