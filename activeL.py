@@ -34,8 +34,9 @@ parser.add_argument('--n_interactions', type=int, default=3, help='3')
 parser.add_argument('--cutoff', type=float, default=4., help='4.')
 parser.add_argument('--final_epochs', type=int, default=-1,)
 parser.add_argument('--emin', type=float, default=47113.71)
-parser.add_argument('--noactive1', action='store_true', default=False)
-parser.add_argument('--noactive2', action='store_true', default=False)
+parser.add_argument('--noactive1', action='store_true', default=False, 'random choose')
+parser.add_argument('--noactive2', action='store_true', default=False, 'choose after know all energy')
+parser.add_argument('--active1', action='store_true', default=False)
 args = parser.parse_args()
 
 metadata = {'atomrefs': [[0.0], [-13.613121720568273], [0.0], [0.0], [0.0], [0.0], [-1029.8631226682135], [-1485.3025123714042], [-2042.6112359256108], [-2713.4848558896506], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0]], 'atref_labels': ['energy']}
@@ -88,7 +89,8 @@ hooks = [
         stop_after_min=True
     ),
     trn.PrintHook(),
-    trn.TestHook(test_loader, rootpath+'/a0', every_n_epochs=args.activeL)
+    trn.TestHook(test_loader, rootpath+'/a0', every_n_epochs=args.activeL,
+                contributions='contributions' if args.contributions else None)
 ]
 
 trainer = trn.Trainer(
@@ -132,7 +134,16 @@ for i in range(args.iterations):
     print('Test MAE', np.round(err, 2), 'eV =',
       np.round(err / (kcal/mol), 2), 'kcal/mol')
     with open(rootpath+'/test.txt','a') as f: f.write(str(err / (kcal/mol))+'\n')
-    var = np.var(hooks[-1].result,axis=0)
+    #
+    if args.contributions:
+        atom_var = np.var(hooks[-1].result1,axis=0)
+        var = np.max(atom_var,axis=1)
+        with open(rootpath+'/a'+str(i)+'/atom_var.txt','w') as f:
+            for j in range(atom_var.shape[0]):
+                for k in range(atom_var.shape[1]): f.write(str(atom_var[j][k][0])+' ')
+                f.write('\n')
+    else:
+        var = np.var(hooks[-1].result1,axis=0)
     order = np.argsort(-var,axis=0)
     with open(rootpath+'/a'+str(i)+'/var.txt','w') as f:
         for j in range(order.shape[0]): f.write(str(var[j][0])+' '+str(order[j][0])+'\n')
@@ -182,7 +193,8 @@ for i in range(args.iterations):
         stop_after_min=True
     ),
     trn.PrintHook()]
-    if i != args.iterations - 1: hooks.append(trn.TestHook(test_loader, rootpath+'/a'+str(i+1), every_n_epochs=args.activeL))
+    if i != args.iterations - 1:
+        hooks.append(trn.TestHook(test_loader, rootpath+'/a'+str(i+1), every_n_epochs=args.activeL, contributions='contributions' if args.contributions else None))
     trainer = trn.Trainer(
     model_path=rootpath+'/a'+str(i+1),
     model=model,
