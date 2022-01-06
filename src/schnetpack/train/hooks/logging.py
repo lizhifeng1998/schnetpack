@@ -317,6 +317,7 @@ class TestHook(Hook):
         self.result2 = []
         self.device = device
         self.log_path = log_path
+        self.contributions = contributions
     def on_epoch_end(self, trainer):
         if trainer.epoch % self.every_n_epochs == self.every_n_epochs - 1:
             self.result1.append([])
