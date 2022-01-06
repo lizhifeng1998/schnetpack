@@ -71,7 +71,7 @@ schnet = spk.representation.SchNet(
 )
 
 output_U0 = spk.atomistic.Atomwise(n_in=args.n_atom_basis, atomref=atomrefs['energy'], property='energy',
-                                   mean=means['energy'], stddev=stddevs['energy'])
+                                   mean=means['energy'], stddev=stddevs['energy'], contributions='contributions' if args.active1 else None)
 model = spk.AtomisticModel(representation=schnet, output_modules=output_U0)
 
 optimizer = Adam(model.parameters(), lr=args.learning_rate)
@@ -177,7 +177,7 @@ for i in range(args.iterations):
         cutoff=args.cutoff, cutoff_network=spk.nn.cutoff.CosineCutoff
         )
         output_U0 = spk.atomistic.Atomwise(n_in=args.n_atom_basis, atomref=atomrefs['energy'], property='energy',
-                                   mean=means['energy'], stddev=stddevs['energy'])
+                                   mean=means['energy'], stddev=stddevs['energy'], contributions='contributions' if args.active1 else None)
         model = spk.AtomisticModel(representation=schnet, output_modules=output_U0)
     else:
         model = best_model
