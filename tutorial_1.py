@@ -45,8 +45,8 @@ for i in range(len(args.dataset)):
 
 train, val, test = spk.train_test_split(
     data=new_dataset[0],
-    num_train=args.num_train,
-    num_val=args.num_val,
+    num_train=args.num_train//len(new_dataset),
+    num_val=args.num_val//len(new_dataset),
     split_file=os.path.join(mytut, "split.npz"),
 )
 for i in range(1,len(args.dataset)):
