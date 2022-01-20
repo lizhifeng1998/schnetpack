@@ -38,21 +38,39 @@ if not os.path.exists('mytut'):
     os.makedirs(mytut)
 with open(mytut+'/cmd','a') as f: f.write(str(sys.argv)+'\n')
 
-new_dataset = AtomsData(args.dataset[0], available_properties=['energy'])
-for i in range(1,len(args.dataset)): new_dataset += AtomsData(args.dataset[i], available_properties=['energy'])
-new_dataset.set_metadata(metadata=metadata)
+new_dataset = []
+for i in range(len(args.dataset)):
+    new_dataset.append(AtomsData(args.dataset[i], available_properties=['energy']))
+    new_dataset[-1].set_metadata(metadata=metadata)
 
 train, val, test = spk.train_test_split(
-    data=new_dataset,
+    data=new_dataset[0],
     num_train=args.num_train,
     num_val=args.num_val,
     split_file=os.path.join(mytut, "split.npz"),
 )
+for i in range(1,len(args.dataset)):
+    train_i, val_i, test_i = spk.train_test_split(
+    data=new_dataset[i],
+    num_train=args.num_train//len(new_dataset),
+    num_val=args.num_val//len(new_dataset),
+    split_file=os.path.join(mytut, "split"+str(i)+".npz"),
+    )
+    train += train_i
+    val += val_i
+    test += test_i
 
 train_loader = spk.AtomsLoader(train, batch_size=args.batch_size, shuffle=True, pin_memory=True)
 val_loader = spk.AtomsLoader(val, batch_size=args.batch_size)
 
-atomrefs = new_dataset.get_atomref('energy')
+atomrefs = new_dataset[0].get_atomref('energy')
+total_length = len(new_dataset[0])
+atomrefs['energy'] *= len(new_dataset[0])
+for i in range(1,len(args.dataset)):
+    total_length += len(new_dataset[i])
+    atomrefs_i = new_dataset[i].get_atomref('energy')
+    atomrefs['energy'] += (atomrefs_i['energy'] * len(new_dataset[i]))
+atomrefs['energy'] /= total_length
 print('U0 of hyrogen:', '{:.2f}'.format(atomrefs['energy'][1][0]), 'eV')
 print('U0 of carbon:', '{:.2f}'.format(atomrefs['energy'][6][0]), 'eV')
 print('U0 of oxygen:', '{:.2f}'.format(atomrefs['energy'][8][0]), 'eV')
