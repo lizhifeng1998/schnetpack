@@ -38,7 +38,8 @@ if not os.path.exists('mytut'):
     os.makedirs(mytut)
 with open(mytut+'/cmd','a') as f: f.write(str(sys.argv)+'\n')
 
-new_dataset = AtomsData(args.dataset, available_properties=['energy'])
+new_dataset = AtomsData(args.dataset[0], available_properties=['energy'])
+for i in range(1,len(args.dataset)): new_dataset += AtomsData(args.dataset[i], available_properties=['energy'])
 new_dataset.set_metadata(metadata=metadata)
 
 train, val, test = spk.train_test_split(
