@@ -8,7 +8,7 @@ class LossFnError(Exception):
     pass
 
 
-def build_mse_loss(properties, loss_tradeoff=None):
+def build_mse_loss(properties, loss_tradeoff=None, weight=None):
     """
     Build the mean squared error loss function.
 
@@ -32,7 +32,10 @@ def build_mse_loss(properties, loss_tradeoff=None):
         for prop, factor in zip(properties, loss_tradeoff):
             diff = batch[prop] - result[prop]
             diff = diff ** 2
-            err_sq = factor * torch.mean(diff)
+            if weight is not None:
+                err_sq = factor * torch.mean(diff * weight[batch['_idx']])
+            else:
+                err_sq = factor * torch.mean(diff)
             loss += err_sq
         return loss
 
