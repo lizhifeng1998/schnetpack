@@ -242,8 +242,8 @@ class Trainer:
                         val_loss /= n_val
 
                     # if self.best_loss > val_loss:
-                        # self.best_loss = val_loss
-                        # torch.save(self._model, self.best_model)
+                    #     self.best_loss = val_loss
+                    #     torch.save(self._model, self.best_model)
                     for i in range(len(self.best_loss)):
                         if self.best_loss[i] > val_loss:
                             for j in range(i,len(self.best_loss)-1):
