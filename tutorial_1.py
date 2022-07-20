@@ -24,11 +24,14 @@ parser.add_argument('--n_interactions', type=int, default=3, help='3')
 parser.add_argument('--cutoff', type=float, default=4., help='4.')
 parser.add_argument('--learning_rate', type=float, default=1e-3, help='1e-3')
 parser.add_argument('--batch_size', type=int, default=100, help='100')
+parser.add_argument('--nets', type=int, default=1, help='1')
 parser.add_argument('--dataset', nargs='+')
 parser.add_argument('--emin', type=float, default=47113.71)
 parser.add_argument('--key_out', default='energy')
 parser.add_argument('--contributions', action='store_true', default=False)
 parser.add_argument('--test_all', action='store_true', default=False)
+parser.add_argument('--use_atomrefs', action='store_true', default=False)
+parser.add_argument('--weight', default=None)
 args = parser.parse_args()
 
 metadata = {'atomrefs': [[0.0], [-13.613121720568273], [0.0], [0.0], [0.0], [0.0], [-1029.8631226682135], [-1485.3025123714042], [-2042.6112359256108], [-2713.4848558896506], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0]], 'atref_labels': ['energy']}
@@ -36,7 +39,9 @@ metadata = {'atomrefs': [[0.0], [-13.613121720568273], [0.0], [0.0], [0.0], [0.0
 mytut = './mytut'
 if not os.path.exists('mytut'):
     os.makedirs(mytut)
-with open(mytut+'/cmd','a') as f: f.write(str(sys.argv)+'\n')
+with open(mytut+'/cmd','a') as f:
+    for x in sys.argv: f.write(x+' ')
+    f.write('\n')
 
 new_dataset = []
 for i in range(len(args.dataset)):
@@ -74,10 +79,26 @@ atomrefs['energy'] /= total_length
 print('U0 of hyrogen:', '{:.2f}'.format(atomrefs['energy'][1][0]), 'eV')
 print('U0 of carbon:', '{:.2f}'.format(atomrefs['energy'][6][0]), 'eV')
 print('U0 of oxygen:', '{:.2f}'.format(atomrefs['energy'][8][0]), 'eV')
-
-means, stddevs = train_loader.get_statistics(
-    'energy', divide_by_atoms=True, single_atom_ref=atomrefs
-)
+if args.use_atomrefs:
+    means, stddevs = train_loader.get_statistics(
+        'energy', divide_by_atoms=True, single_atom_ref=atomrefs
+    )
+    if args.contributions:
+        output_U0 = spk.atomistic.Atomwise(n_in=args.n_atom_basis, atomref=atomrefs['energy'], property='energy',
+                                   mean=means['energy'], stddev=stddevs['energy'], contributions='contributions')
+    else:
+        output_U0 = spk.atomistic.Atomwise(n_in=args.n_atom_basis, atomref=atomrefs['energy'], property='energy',
+                                   mean=means['energy'], stddev=stddevs['energy'])
+else:
+    means, stddevs = train_loader.get_statistics(
+        'energy', divide_by_atoms=True
+    )
+    if args.contributions:
+        output_U0 = spk.atomistic.Atomwise(n_in=args.n_atom_basis, property='energy',
+                                   mean=means['energy'], stddev=stddevs['energy'], contributions='contributions')
+    else:
+        output_U0 = spk.atomistic.Atomwise(n_in=args.n_atom_basis, property='energy',
+                                   mean=means['energy'], stddev=stddevs['energy'])
 print('Mean atomization energy / atom:', means['energy'])
 print('Std. dev. atomization energy / atom:', stddevs['energy'])
 
@@ -86,12 +107,6 @@ schnet = spk.representation.SchNet(
     n_gaussians=args.n_gaussians, n_interactions=args.n_interactions,
     cutoff=args.cutoff, cutoff_network=spk.nn.cutoff.CosineCutoff
 )
-if args.contributions:
-    output_U0 = spk.atomistic.Atomwise(n_in=args.n_atom_basis, atomref=atomrefs['energy'], property='energy',
-                                   mean=means['energy'], stddev=stddevs['energy'], contributions='contributions')
-else:
-    output_U0 = spk.atomistic.Atomwise(n_in=args.n_atom_basis, atomref=atomrefs['energy'], property='energy',
-                                   mean=means['energy'], stddev=stddevs['energy'])
 model = spk.AtomisticModel(representation=schnet, output_modules=output_U0)
 
 def mse_loss(batch, result):
@@ -109,8 +124,14 @@ if not args.test:
         os.removedirs('./mytut/checkpoints')
     except:
         pass
+try:
+    w = np.loadtxt(args.weight)
+    weight = torch.tensor(w)
+    weight.to(device)
+except:
+    weight = None
 
-loss = trn.build_mse_loss(['energy'])
+loss = trn.build_mse_loss(['energy'], weight=weight)
 
 metrics = [spk.metrics.MeanAbsoluteError('energy')]
 hooks = [
@@ -131,6 +152,7 @@ if not args.test:
     optimizer=optimizer,
     train_loader=train_loader,
     validation_loader=val_loader,
+    nets=args.nets,
     )
 
 device = "cuda"  # change to 'cpu' if gpu is not available
@@ -166,13 +188,22 @@ plt.savefig('mytut.png')
 
 best_model = torch.load(os.path.join(mytut, 'best_model'))
 if args.test_all:
-    test_idx = [i for i in range(len(new_dataset))]
-    test = create_subset(new_dataset, test_idx)
+    if os.path.exists(os.path.join(mytut, 'split.npz')):
+        a = np.load(os.path.join(mytut, 'split.npz'))
+        test_idx = [int(i) for i in np.concatenate((a['train_idx'],a['val_idx'],a['test_idx']))]
+    else:
+        test_idx = [i for i in range(len(new_dataset[-1]))]
+    test = create_subset(new_dataset[-1], test_idx)
 test_loader = spk.AtomsLoader(test, batch_size=args.batch_size)
 
 err = 0
 print(len(test_loader))
 plt.clf()
+x = []
+for count, batch in enumerate(test_loader):
+    batch = {k: v.to(device) for k, v in batch.items()}
+    x += [w[0] for w in batch['energy'].detach().cpu().numpy()]
+emin = min(x)
 x, y, contributions  = [], [], []
 for count, batch in enumerate(test_loader):
     # move batch to GPU, if necessary
@@ -186,8 +217,8 @@ for count, batch in enumerate(test_loader):
     tmp = tmp.detach().cpu().numpy()  # detach from graph & convert to numpy
     err += tmp
     
-    x += [w[0] for w in (batch['energy'].detach().cpu().numpy()+args.emin)*23.04]
-    y += [w[0] for w in (pred[args.key_out].detach().cpu().numpy()+args.emin)*23.04]
+    x += [w[0]*23.06 for w in (batch['energy'].detach().cpu().numpy()-emin)]
+    y += [w[0]*23.06 for w in (pred[args.key_out].detach().cpu().numpy()-emin)]
     if args.contributions:
         contributions += [w.tolist() for w in pred['contributions'].detach().cpu().numpy()*23.04]
 
