@@ -83,6 +83,7 @@ class Atomwise(nn.Module):
         stddev=None,
         atomref=None,
         outnet=None,
+        Esigma=None,
     ):
         super(Atomwise, self).__init__()
 
