@@ -2,7 +2,7 @@ import os
 import sys
 import numpy as np
 import torch
-
+import shutil
 
 class Trainer:
     r"""Class to train a model.
@@ -38,10 +38,12 @@ class Trainer:
         validation_interval=1,
         hooks=[],
         loss_is_normalized=True,
+        nets=1,
     ):
         self.model_path = model_path
         self.checkpoint_path = os.path.join(self.model_path, "checkpoints")
-        self.best_model = os.path.join(self.model_path, "best_model")
+        # self.best_model = os.path.join(self.model_path, "best_model")
+        self.best_model = [os.path.join(self.model_path, "best_model"+str(i)) for i in range(nets)]
         self.train_loader = train_loader
         self.validation_loader = validation_loader
         self.validation_interval = validation_interval
@@ -63,6 +65,7 @@ class Trainer:
             self.epoch = 0
             self.step = 0
             self.best_loss = float("inf")
+            self.best_loss = [float("inf") for _ in range(nets)]
             self.store_checkpoint()
 
     def _check_is_parallel(self):
@@ -238,9 +241,18 @@ class Trainer:
                     if self.loss_is_normalized:
                         val_loss /= n_val
 
-                    if self.best_loss > val_loss:
-                        self.best_loss = val_loss
-                        torch.save(self._model, self.best_model)
+                    # if self.best_loss > val_loss:
+                    #     self.best_loss = val_loss
+                    #     torch.save(self._model, self.best_model)
+                    for i in range(len(self.best_loss)):
+                        if self.best_loss[i] > val_loss:
+                            for j in range(i,len(self.best_loss)-1):
+                                self.best_loss[len(self.best_loss)-j+i-1] = self.best_loss[len(self.best_loss)-j+i-2]
+                                if not os.path.exists(self.best_model[len(self.best_loss)-j+i-2]):
+                                    continue
+                                shutil.move(self.best_model[len(self.best_loss)-j+i-2], self.best_model[len(self.best_loss)-j+i-1])
+                            self.best_loss[i] = val_loss
+                            torch.save(self._model, self.best_model[i])
 
                     for h in self.hooks:
                         h.on_validation_end(self, val_loss)

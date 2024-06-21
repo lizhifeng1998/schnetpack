@@ -4,7 +4,7 @@ import numpy as np
 from schnetpack.train.hooks import Hook
 
 
-__all__ = ["LoggingHook", "CSVHook", "TensorboardHook"]
+__all__ = ["LoggingHook", "CSVHook", "TensorboardHook", "PrintHook", "TestHook"]
 
 
 class LoggingHook(Hook):
@@ -278,3 +278,58 @@ class TensorboardHook(LoggingHook):
 
     def on_train_failed(self, trainer):
         self.writer.close()
+
+class PrintHook(Hook):
+    def __init__(
+        self,
+        log_train_loss=True,
+        log_validation_loss=True,
+        log_learning_rate=True,
+        every_n_epochs=1,
+    ):
+        self._offset = 0
+        self._restart = False
+        self.every_n_epochs = every_n_epochs
+    def on_epoch_begin(self, trainer):
+        print('epoch[ ',trainer.epoch,'\t]\t', end='')
+    def on_validation_end(self, trainer, val_loss):
+        print(round(val_loss, 6), end='')
+    def on_epoch_end(self, trainer):
+        print() 
+
+class TestHook(Hook):
+    def __init__(
+        self,
+        test_loader,
+        log_path,
+        log_train_loss=True,
+        log_validation_loss=True,
+        log_learning_rate=True,
+        contributions=None,
+        every_n_epochs=1,
+        device="cuda",
+    ):
+        self._offset = 0
+        self._restart = False
+        self.every_n_epochs = every_n_epochs
+        self.test_loader = test_loader
+        self.result1 = []
+        self.result2 = []
+        self.device = device
+        self.log_path = log_path
+        self.contributions = contributions
+    def on_epoch_end(self, trainer):
+        if trainer.epoch % self.every_n_epochs == self.every_n_epochs - 1:
+            self.result1.append([])
+            self.result2.append([])
+            for count, batch in enumerate(self.test_loader):
+                batch = {k: v.to(self.device) for k, v in batch.items()}
+                pred = trainer._model(batch)
+                self.result1[-1] += pred['energy'].detach().cpu().tolist()
+                if self.contributions is not None:
+                    self.result2[-1] +=pred[self.contributions].detach().cpu().tolist()
+    def on_train_ends(self, trainer):
+        with open(self.log_path+'/result.csv','w') as f:
+            for i in range(len(self.result[0])):
+                for j in range(len(self.result)): f.write(str(self.result[j][i][0])+',')
+                f.write('\n')
